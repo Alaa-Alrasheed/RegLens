@@ -35,9 +35,12 @@ _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩أإآٱىة", "0123456789اااا�
 _MARKS = re.compile(r"[\u064b-\u0652\u0670\u0640]")
 _SENTENCES = re.compile(r"(?<=[.!?؟؛;])\s+|\n+")
 _QUOTED = re.compile(
-    r'''["“'«]([^"”'»\n]{2,60})["”'»]\s*'''
-    r"(?:means|shall mean|refers to|is defined as)\s+(.+)", re.I,
+    r'''["“'«‘]([^"”'»’\n]{2,80})["”'»’]\s*'''
+    r"(?:means|shall mean|refers to|is defined as)\s+(.+)", re.I | re.S,
 )
+# Start of a definition item in a definitions article: "(12) ‘certificate’ means", "(a) ...", or a quoted term.
+_ITEM_START = re.compile(r"^\s*(?:\(\s*[0-9a-z]{1,3}\s*\)|[‘'“\"«])", re.M)
+_ABBREV = re.compile(r"\s*\([A-Z0-9][A-Za-z0-9/\- ]{0,12}\)\s*$")
 _UNQUOTED = re.compile(
     r"^\s*(?:\(?[a-z0-9]{1,3}\)\s*)?"
     r"([A-Z][A-Za-z\- ]{2,50}?)\s+means\s+(.+)$",
@@ -57,13 +60,15 @@ def _norm(text: str) -> str:
 
 
 def _term_key(term: str) -> str:
+    # "Apron (APN)" -> "apron"; PDF word splits ("aircraft operato r") are handled by joining words.
+    term = _ABBREV.sub("", term)
     words = re.findall(r"[^\W_]+", _norm(term))
     for i, word in enumerate(words):
         if word.startswith("ال") and len(word) >= 5:
             words[i] = word[2:]
         elif len(word) >= 5 and word.isascii() and word.endswith("s"):
             words[i] = word[:-1]
-    return " ".join(words)
+    return "".join(words)
 
 
 @dataclass(frozen=True)
@@ -83,11 +88,41 @@ def _articles(articles: list[Article]) -> list[Article]:
     )
 
 
+def _segments(article: Article) -> list[str]:
+    """Definition articles: one segment per item, keeping wrapped PDF lines together.
+    Each segment is an exact (stripped) slice of the article text."""
+    text = article["text"]
+    if not article.get("is_definitions", False):
+        return text.splitlines()
+    # Join a line to the previous one only when it continues a wrapped sentence:
+    # the previous line does not end an item (. ; :) and this line does not start a new one.
+    segments, start, prev_end = [], 0, ""
+    pos = 0
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        new_item = bool(_ITEM_START.match(line)) or stripped[:1] in "-–•" or not prev_end or prev_end in ".;:"
+        if new_item and pos > start:
+            segments.append(text[start:pos])
+            start = pos
+        pos += len(line)
+        if stripped:
+            prev_end = stripped[-1]
+    segments.append(text[start:])
+    return segments
+
+
 def _definitions(articles: list[Article]) -> list[_Definition]:
     definitions = []
     seen = set()
     for article in _articles(articles):
-        for line in article["text"].splitlines():
+        if (article.get("extra") or {}).get("kind") == "glossary_term":
+            # CAR-DEF glossary row (contract v2): term = title, definition = text.
+            term, body = (article.get("title") or article.get("article_no") or "").strip(), article["text"].strip()
+            key = _term_key(term)
+            if key and body and not re.match(r"see\b", body, re.I):
+                definitions.append(_Definition(article, term, key, body, body))
+            continue
+        for line in _segments(article):
             quote = line.strip()
             match = _QUOTED.search(quote)
             if match is None and article.get("is_definitions", False):
@@ -393,8 +428,8 @@ def _self_test(mock_articles: list[Article]) -> bool:
             expected = [
                 ({"duplicate_requirement"}, {"CAR-OPS|5", "CAR-AIR|5"}, None),
                 ({"partial_overlap", "duplicate_requirement"}, {"CAR-OPS|4", "CAR-AIR|4"}, None),
-                ({"divergent_definition"}, {"CAR-OPS|2", "CAR-DEF|2"}, "Operator"),
-                ({"duplicate_definition"}, {"CAR-AIR|2", "CAR-DEF|2"}, "Occurrence"),
+                ({"divergent_definition"}, {"CAR-OPS|2", "CAR-DEF|Operator"}, "Operator"),
+                ({"duplicate_definition"}, {"CAR-AIR|2", "CAR-DEF|Occurrence"}, "Occurrence"),
                 ({"definition_missing_from_def"}, {"CAR-OPS|2", "CAR-AIR|2"}, "Dry lease"),
             ]
             for types, ids, term in expected:
@@ -425,7 +460,9 @@ def _self_test(mock_articles: list[Article]) -> bool:
             self.assertEqual(len(index["مشغل"]), 1)
             self.assertNotIn("unquoted", index)
             self.assertEqual(_norm("أَإِآٱ ى ة ـ ١٢"), "اااا ي ه  12")
-            self.assertEqual(_term_key('"Safety-records"'), "safety record")
+            self.assertEqual(_term_key('"Safety-records"'), "safetyrecord")
+            self.assertEqual(_term_key("aircraft operato r"), _term_key("Aircraft operator"))
+            self.assertEqual(_term_key("Apron (APN)"), _term_key("apron"))
             self.assertEqual(_term_key("الجو"), "الجو")
             self.assertEqual(index["مشغل"][0]["text"], source[0]["text"].splitlines()[1])
 
