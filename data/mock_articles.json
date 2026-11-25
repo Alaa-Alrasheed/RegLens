@@ -1,0 +1,134 @@
+[
+ {
+  "id": "CAR-DEF|2",
+  "regulation": "CAR-DEF",
+  "article_no": "2",
+  "title": "Definitions",
+  "text": "\"Operator\" means a person, organisation or enterprise engaged in or offering to engage in an aircraft operation.\n\"Occurrence\" means any safety-related event which endangers or could endanger an aircraft, its occupants or any other person.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": true
+ },
+ {
+  "id": "CAR-OPS|2",
+  "regulation": "CAR-OPS",
+  "article_no": "2",
+  "title": "Definitions",
+  "text": "\"Operator\" means any person or company that operates an aircraft for commercial air transport.\n\"Dry lease\" means an agreement under which the aircraft is operated under the certificate of the lessee.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": true
+ },
+ {
+  "id": "CAR-OPS|3",
+  "regulation": "CAR-OPS",
+  "article_no": "3",
+  "title": "Occurrence reporting",
+  "text": "The operator shall notify the Authority of any occurrence within 72 hours of the event becoming known.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-OPS|4",
+  "regulation": "CAR-OPS",
+  "article_no": "4",
+  "title": "Retention of records",
+  "text": "The operator shall retain all aircraft maintenance records for a period of 2 years after the aircraft has been permanently withdrawn from service.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-OPS|5",
+  "regulation": "CAR-OPS",
+  "article_no": "5",
+  "title": "Safety management system",
+  "text": "The operator shall establish, implement and maintain a safety management system appropriate to the size and complexity of its operations. The system shall include a safety policy, hazard identification, risk assessment, safety assurance and safety promotion.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-OPS|6",
+  "regulation": "CAR-OPS",
+  "article_no": "6",
+  "title": "Operations manual",
+  "text": "The operator shall maintain an operations manual in accordance with CAR-OPS Article 14 and ICAO Annex 6, Part I, 10th Edition.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-AIR|2",
+  "regulation": "CAR-AIR",
+  "article_no": "2",
+  "title": "Definitions",
+  "text": "\"Occurrence\" means any safety-related event which endangers or could endanger an aircraft, its occupants or any other person.\n\"Dry lease\" means an arrangement in which an aircraft is leased without crew and operated under the lessee's certificate.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": true
+ },
+ {
+  "id": "CAR-AIR|3",
+  "regulation": "CAR-AIR",
+  "article_no": "3",
+  "title": "Reporting",
+  "text": "The organisation shall report to the Authority any occurrence affecting airworthiness within 24 hours.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-AIR|4",
+  "regulation": "CAR-AIR",
+  "article_no": "4",
+  "title": "Maintenance records",
+  "text": "Maintenance records shall be kept for a minimum of 3 years after the aircraft has been permanently withdrawn from service.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-AIR|5",
+  "regulation": "CAR-AIR",
+  "article_no": "5",
+  "title": "Safety management",
+  "text": "The organisation shall establish, implement and maintain a safety management system appropriate to the size and complexity of the organisation. The system shall include a safety policy, hazard identification, risk assessment, safety assurance and safety promotion.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-AIR|6",
+  "regulation": "CAR-AIR",
+  "article_no": "6",
+  "title": "Standards",
+  "text": "Continuing airworthiness shall be managed in accordance with ICAO Annex 6, Part I, 12th Edition and CAR-OPS Article 9.",
+  "lang": "en",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ },
+ {
+  "id": "CAR-AOC|2",
+  "regulation": "CAR-AOC",
+  "article_no": "2",
+  "title": "سجلات الصيانة",
+  "text": "يلتزم المشغل بالاحتفاظ بسجلات الصيانة لمدة (5) سنوات على الأقل.",
+  "lang": "ar",
+  "source_file": "mock",
+  "page": null,
+  "is_definitions": false
+ }
+]

@@ -1,0 +1,89 @@
+[
+ {
+  "id": "conflicting_values:CAR-AIR|4+CAR-AOC|2+CAR-OPS|4",
+  "type": "conflicting_values",
+  "severity": "high",
+  "article_ids": [
+   "CAR-OPS|4",
+   "CAR-AIR|4",
+   "CAR-AOC|2"
+  ],
+  "evidence": [
+   {
+    "article_id": "CAR-OPS|4",
+    "quote": "The operator shall retain all aircraft maintenance records for a period of 2 years after the aircraft has been permanently withdrawn from service."
+   },
+   {
+    "article_id": "CAR-AIR|4",
+    "quote": "Maintenance records shall be kept for a minimum of 3 years after the aircraft has been permanently withdrawn from service."
+   },
+   {
+    "article_id": "CAR-AOC|2",
+    "quote": "يلتزم المشغل بالاحتفاظ بسجلات الصيانة لمدة (5) سنوات على الأقل."
+   }
+  ],
+  "summary": "Maintenance record retention: CAR-OPS Art.4 = 2 years; CAR-AIR Art.4 = 3 years; CAR-AOC Art.2 = 5 years",
+  "recommendation": "move_to_common",
+  "rationale": "Same obligation stated with three different periods in three regulations; the expert must choose one value and state it once.",
+  "detector": "rules",
+  "confidence": 0.9,
+  "quotes_verified": true,
+  "extra": {
+   "topic": "retention",
+   "object": "maintenance"
+  }
+ },
+ {
+  "id": "divergent_definition:CAR-DEF|2+CAR-OPS|2",
+  "type": "divergent_definition",
+  "severity": "high",
+  "article_ids": [
+   "CAR-OPS|2",
+   "CAR-DEF|2"
+  ],
+  "evidence": [
+   {
+    "article_id": "CAR-OPS|2",
+    "quote": "\"Operator\" means any person or company that operates an aircraft for commercial air transport."
+   },
+   {
+    "article_id": "CAR-DEF|2",
+    "quote": "\"Operator\" means a person, organisation or enterprise engaged in or offering to engage in an aircraft operation."
+   }
+  ],
+  "summary": "\"Operator\" is defined differently in CAR-OPS Art.2 and CAR-DEF Art.2",
+  "recommendation": "harmonize_wording",
+  "rationale": "CAR-DEF is the reference for definitions; align the CAR-OPS definition or justify a sector-specific meaning.",
+  "detector": "similarity",
+  "confidence": 0.42,
+  "quotes_verified": true,
+  "extra": {
+   "term": "Operator",
+   "similarity": 0.42
+  }
+ },
+ {
+  "id": "broken_reference:CAR-OPS|6",
+  "type": "broken_reference",
+  "severity": "high",
+  "article_ids": [
+   "CAR-OPS|6"
+  ],
+  "evidence": [
+   {
+    "article_id": "CAR-OPS|6",
+    "quote": "The operator shall maintain an operations manual in accordance with CAR-OPS Article 14 and ICAO Annex 6, Part I, 10th Edition."
+   }
+  ],
+  "summary": "CAR-OPS Art.6 refers to CAR-OPS Article 14, which does not exist",
+  "recommendation": "correct_reference",
+  "rationale": "The referenced article is not in the regulation; it may have been repealed, moved or renumbered.",
+  "detector": "rules",
+  "confidence": 0.95,
+  "quotes_verified": true,
+  "extra": {
+   "to_regulation": "CAR-OPS",
+   "to_article": "14"
+  }
+ }
+]

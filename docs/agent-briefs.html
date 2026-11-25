@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RegLens agent briefs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: plain working memo for a team under a 60-minute clock
+   IDEA: a planning office job sheet: one ruled table, then one brief per desk
+   PICTURE: the ownership table is the picture
+   COLOUR and TYPE: white and black, brick red for the one thing that matters (the contract); Schibsted Grotesk
+   LAYOUT: one calm column, sticky section links, copy buttons on every brief */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#171513);--ink:light-dark(#141414,#ecebe8);--mute:light-dark(#5d5a55,#a9a59e);--line:light-dark(#d9d6d0,#3a3632);--panel:light-dark(#f4f2ee,#211e1b);--brick:light-dark(#b8321b,#e0644c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+.wrap{max-width:980px;margin:0 auto;padding:clamp(24px,4vw,48px) max(5vw,16px) 80px}
+h1{font-size:clamp(32px,5vw,44px);line-height:1.05;margin:0 0 10px;text-wrap:balance}
+h2{font-size:24px;line-height:1.2;margin:48px 0 12px;padding-top:12px;border-top:2px solid var(--ink)}
+h3{font-size:18px;margin:0}
+p{max-width:70ch;margin:0 0 12px}
+.lead{font-size:17px;color:var(--mute)}
+nav{display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:20px 0 0;border-bottom:1px solid var(--line);background:var(--bg)}
+nav a{flex:none;color:var(--ink);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px}
+nav a:hover,nav a:focus-visible{border-color:var(--ink)}
+@media(min-width:900px){nav{position:sticky;top:0;z-index:2}}
+html{scroll-padding-top:72px}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+th,td{text-align:start;vertical-align:top;padding:10px 10px 10px 0;border-bottom:1px solid var(--line)}
+th{font-weight:600;border-bottom:2px solid var(--ink)}
+td code,p code,li code{font-size:13.5px;background:var(--panel);padding:1px 5px;border-radius:4px;overflow-wrap:anywhere}
+ul,ol{padding-inline-start:22px;max-width:72ch}li{margin:4px 0}
+.card{border:1px solid var(--line);border-radius:8px;margin:18px 0;overflow:hidden}
+.card.key{border-color:var(--brick)}
+.head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--panel)}
+.head .sub{color:var(--mute);font-size:14px;margin-top:2px}
+.key .head h3{color:var(--brick)}
+button{font:600 15px/1 inherit;font-family:inherit;min-height:44px;padding:0 16px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+button.ghost{background:transparent;color:var(--ink)}
+button:focus-visible,nav a:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+pre{margin:0;padding:16px;font:13.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:520px;overflow:auto}
+.note{font-size:14px;color:var(--mute)}
+.tl td:first-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;width:7.5em}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;font-weight:600;white-space:normal}.stack td:empty{display:none}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div class="wrap">
+<h1>RegLens: who builds what</h1>
+<p class="lead">GCAA "Innovation Takes Flight" · RegLens challenge (Safety sector). Five people, five AI agents, one shared contract, merged on one laptop at T+30.</p>
+
+<nav aria-label="Sections">
+<a href="#plan">Plan</a><a href="#owners">Owners</a><a href="#time">Timeline</a><a href="#merge">Merge rules</a><a href="#contract">Contract</a><a href="#p1">P1 Ingest</a><a href="#p2">P2 Rules</a><a href="#p3">P3 Similarity</a><a href="#p4">P4 App</a><a href="#p5">P5 AI</a><a href="#humans">Human tasks</a>
+</nav>
+
+<h2 id="plan">What we are building</h2>
+<p>A Python tool that reads the CAR regulations, splits them into articles, and finds four kinds of problems: <strong>conflicting values</strong> (e.g. records kept 2 years vs 3 years), <strong>duplicate or divergent definitions</strong> versus CAR-DEF, <strong>broken references</strong> (to missing articles or mismatched ICAO editions), and <strong>duplicate or overlapping requirements</strong>. Every finding cites regulation + article number, quotes both sides verbatim, and proposes one action: move to a common regulation, cross-reference, harmonize wording, or keep with justification.</p>
+<p>A Streamlit review screen lets the expert accept, modify or reject each finding. The official text is never edited. The AI drafts unified wording on request, marked "not approved" until an expert signs off. Results export to Excel.</p>
+<p><strong>The demo story (60 s):</strong> load the regulations → 9 findings appear → open "maintenance records: 2 vs 3 vs 5 years" → show the quotes side by side → click "Draft unified wording" → expert accepts → export to Excel → show "found X of Y expert-labeled cases".</p>
+
+<h2 id="owners">Owners</h2>
+<table class="stack">
+<thead><tr><th>Person</th><th>Agent builds</th><th>Files they own</th><th>Needs from others</th></tr></thead>
+<tbody>
+<tr><td>P1 · Ingest</td><td>Parse PDF/DOCX/TXT into articles, pipeline runner, evaluation vs expert labels</td><td><code>ingest.py</code> <code>run_pipeline.py</code> <code>evaluate.py</code> <code>requirements.txt</code></td><td>Nothing. Uses stubs if detectors aren't ready</td></tr>
+<tr><td>P2 · Rules</td><td>Conflicting values, broken references, ICAO editions</td><td><code>detect_rules.py</code></td><td>Mock articles (in contract)</td></tr>
+<tr><td>P3 · Similarity</td><td>Definitions vs CAR-DEF, duplicate and overlapping articles, term index</td><td><code>detect_similarity.py</code></td><td>Mock articles (in contract)</td></tr>
+<tr><td>P4 · App</td><td>Streamlit review screen, impact view, terms, draft check, Excel export</td><td><code>app.py</code></td><td>Mock findings (in contract)</td></tr>
+<tr><td>P5 · AI</td><td>Quote verification, prompt library, AI drafting of unified wording</td><td><code>ai_assist.py</code> <code>prompts/*</code></td><td>Mock findings (in contract)</td></tr>
+</tbody>
+</table>
+<p class="note">Each person pastes <em>their own</em> brief into their agent. Every brief already includes the shared contract, so no agent needs to know about the others.</p>
+
+<h2 id="time">Timeline (build window 9:22–10:22)</h2>
+<table class="tl">
+<tbody>
+<tr><td>T+0–5</td><td>Lead creates the GitHub repo with an empty <code>data/</code> folder. Everyone clones it and pastes their brief into their agent.</td></tr>
+<tr><td>T+5–25</td><td>Agents build against the mock data. P1 also gets the <strong>real</strong> regulations into <code>data/raw/</code> and produces <code>data/articles.json</code> by T+20.</td></tr>
+<tr><td>T+25</td><td>Everyone pushes their own files. Each module must pass its own acceptance check on the mock data.</td></tr>
+<tr><td>T+25–35</td><td>Merge on P4's laptop: <code>pip install -r requirements.txt</code> → <code>python run_pipeline.py</code> → <code>streamlit run app.py</code>. P2 and P3 tune thresholds on the real data.</td></tr>
+<tr><td>T+35–45</td><td>Expert review round: show the experts real findings and fix what they flag. Run the evaluation.</td></tr>
+<tr><td>T+45</td><td><strong>Feature freeze.</strong> Export the Excel report and save example AI outputs.</td></tr>
+<tr><td>T+45–60</td><td>Rehearse the 3-minute pitch twice with the live demo. Submit.</td></tr>
+</tbody>
+</table>
+
+<h2 id="merge">Merge rules</h2>
+<ol>
+<li>Each person commits <strong>only the files they own</strong>. There are no shared files, so there are no merge conflicts.</li>
+<li>Only the lead changes the contract. If an agent wants a new field, it goes in <code>extra</code>, never as a new top-level field.</li>
+<li>Every module must run on <code>data/mock_articles.json</code> or <code>data/mock_findings.json</code> without the other modules present.</li>
+<li>Every cross-module import goes inside <code>try/except</code>. A broken module shows "not available"; it never crashes the demo.</li>
+<li>Stop adding features at T+45. After that, only fixes.</li>
+</ol>
+
+<div class="card key" id="contract">
+<div class="head"><div><h3>Shared contract</h3><div class="sub">Already included in every brief below. Shown here so humans can read it.</div></div>
+<div class="btns"><button type="button" data-copy="contract">Copy contract</button></div></div>
+<pre id="pre-contract"></pre>
+</div>
+
+<h2 id="briefs">Agent briefs</h2>
+<p>Each "Copy agent prompt" button copies the shared contract plus that person's brief, ready to paste into Claude Code, Cursor or any coding agent.</p>
+<div id="cards"></div>
+
+<h2 id="humans">Human tasks (done while the agents code)</h2>
+<table class="stack">
+<thead><tr><th>Who</th><th>Task</th><th>Done when</th></tr></thead>
+<tbody>
+<tr><td>Lead</td><td>Create the repo, keep this page open, run the merge at T+25, decide every contract question</td><td>The app runs end to end on real data</td></tr>
+<tr><td>P1</td><td>Turn the experts' labeled sample cases into <code>data/expert_labels.csv</code></td><td>The CSV has every labeled case</td></tr>
+<tr><td>P4</td><td>Write the 3-minute script: problem 30 s, solution 60 s, live demo 60 s, impact and trust 30 s</td><td>Read aloud in under 3:00</td></tr>
+<tr><td>P5</td><td>Build the slides, including the human-oversight slide: verified quotes, expert decision on every finding, official text read-only, AI drafts marked "not approved"</td><td>5–6 slides</td></tr>
+<tr><td>All</td><td>Submission checklist: working prototype, prompt set, one output (the Excel report), oversight slide, pitch, team names and solution name</td><td>Everything ticked</td></tr>
+</tbody>
+</table>
+<p class="note">The mock data in the contract is fictional and only for testing. The demo uses the real regulations provided by GCAA.</p>
+</div>
+
+<script>
+{
+const CONTRACT = String.raw`=== REGLENS SHARED CONTRACT (do not change; extra fields go in "extra") ===
+Project: RegLens, a tool for GCAA (UAE) that detects duplication, overlap and conflict across Civil Aviation Regulations (CARs) and recommends an action per case. It SUPPORTS the expert and never replaces them. It NEVER edits official text. Every result is traceable to regulation + article number.
+
+Language: Python 3.10+. Libraries: pypdf, python-docx, scikit-learn, pandas, openpyxl, streamlit, anthropic (optional), openai (optional). Text is Arabic and/or English.
+
+Repo layout:
+  data/raw/                 original regulation files (pdf/docx/txt)
+  data/articles.json        list[Article]       (written by ingest.py)
+  data/findings.json        list[Finding]       (written by run_pipeline.py)
+  data/reviews.json         {finding_id: Review} (written by app.py)
+  data/references.json      list[Reference]     (written by run_pipeline.py via detect_rules.references)
+  data/similarity.json      list[[id_a,id_b,score]] (written by run_pipeline.py via detect_similarity.similar_pairs)
+  data/terms.json           {term_key: [{article_id, term, text}]} (written by run_pipeline.py via detect_similarity.term_index)
+  data/expert_labels.csv    columns: article_a,article_b,type
+  data/evaluation.json      written by evaluate.py
+  data/mock_articles.json   fixture below (create it if missing)
+  data/mock_findings.json   fixture below (create it if missing)
+  ingest.py  detect_rules.py  detect_similarity.py  ai_assist.py  evaluate.py  run_pipeline.py  app.py  prompts/
+
+Function signatures (exact):
+  ingest.parse_documents(paths: list[str]) -> list[Article]
+  detect_rules.detect(articles: list[Article], config: dict | None = None) -> list[Finding]
+  detect_rules.references(articles: list[Article]) -> list[Reference]
+  detect_similarity.detect(articles: list[Article], config: dict | None = None) -> list[Finding]
+  detect_similarity.similar_pairs(articles: list[Article], min_score: float = 0.25) -> list[tuple[str, str, float]]
+  detect_similarity.term_index(articles: list[Article]) -> dict
+  ai_assist.verify_quotes(findings: list[Finding], articles: list[Article]) -> list[Finding]
+  ai_assist.build_prompt(finding: Finding, articles: list[Article], kind: str = "unified_wording") -> str
+  ai_assist.draft(finding: Finding, articles: list[Article], kind: str = "unified_wording") -> dict
+  evaluate.evaluate(findings: list[Finding], labels_path: str) -> dict
+
+Article (dict):
+{
+  "id": "CAR-OPS|4",              # "<regulation>|<article_no>", unique
+  "regulation": "CAR-OPS",
+  "article_no": "4",               # as printed; Arabic-Indic digits converted to 0-9; Arabic ordinal words kept (e.g. "الأولى")
+  "title": "Retention of records",
+  "text": "...",                   # body text, original wording (only NFKC-normalized). Quotes must be exact substrings of this.
+  "lang": "en" | "ar",
+  "source_file": "CAR-OPS.pdf",
+  "page": 3 | null,
+  "is_definitions": true | false
+}
+Display format for humans: "CAR-OPS · Art. 4".
+
+Finding (dict):
+{
+  "id": "<type>:<sorted article ids joined by +>",   # deterministic, e.g. "conflicting_values:CAR-AIR|4+CAR-OPS|4"
+  "type": one of TYPES,
+  "severity": "high" | "medium" | "low",
+  "article_ids": ["CAR-OPS|4", "CAR-AIR|4"],
+  "evidence": [{"article_id": "CAR-OPS|4", "quote": "<exact sentence copied from article text>"}],
+  "summary": "one line a human understands",
+  "recommendation": one of RECOMMENDATIONS,
+  "rationale": "one or two sentences: why this recommendation",
+  "detector": "rules" | "similarity",
+  "confidence": 0.0-1.0,
+  "quotes_verified": true | false,   # set by ai_assist.verify_quotes
+  "extra": {}                        # anything detector-specific
+}
+TYPES: conflicting_values, duplicate_requirement, partial_overlap, duplicate_definition, divergent_definition, definition_missing_from_def, broken_reference, unverifiable_reference, icao_edition_issue
+RECOMMENDATIONS: move_to_common, cross_reference, harmonize_wording, keep_with_justification, correct_reference
+Severity order for sorting: high > medium > low.
+
+Reference (dict): {"from": "CAR-OPS|6", "to_regulation": "CAR-OPS", "to_article": "14", "resolved_id": "CAR-OPS|14" | null, "quote": "<sentence>"}
+
+Review (dict, in reviews.json keyed by finding id):
+{"decision": "pending"|"accepted"|"modified"|"rejected", "final_recommendation": one of RECOMMENDATIONS, "note": "", "reviewer": "", "ai_draft": {} | null, "timestamp": "ISO-8601"}
+
+Text normalization used for MATCHING only (never for quotes):
+  NFKC; lowercase; Arabic-Indic digits ٠-٩ -> 0-9; remove tashkeel U+064B-U+0652, U+0670 and tatweel U+0640; أ إ آ ٱ -> ا ; ى -> ي ; ة -> ه
+  Sentence split: re.split(r'(?<=[.!?؟؛;])\s+|\n+', text)
+
+Rules for every module:
+  - Never crash on missing optional files or missing modules: catch, print a warning, continue.
+  - Evidence quotes are copied from Article.text, never paraphrased.
+  - The code must run with: python <module>.py data/mock_articles.json (detectors) or data/mock_findings.json (ai_assist).
+
+FIXTURE data/mock_articles.json (fictional, for testing only):
+[
+ {"id":"CAR-DEF|2","regulation":"CAR-DEF","article_no":"2","title":"Definitions","text":"\"Operator\" means a person, organisation or enterprise engaged in or offering to engage in an aircraft operation.\n\"Occurrence\" means any safety-related event which endangers or could endanger an aircraft, its occupants or any other person.","lang":"en","source_file":"mock","page":null,"is_definitions":true},
+ {"id":"CAR-OPS|2","regulation":"CAR-OPS","article_no":"2","title":"Definitions","text":"\"Operator\" means any person or company that operates an aircraft for commercial air transport.\n\"Dry lease\" means an agreement under which the aircraft is operated under the certificate of the lessee.","lang":"en","source_file":"mock","page":null,"is_definitions":true},
+ {"id":"CAR-OPS|3","regulation":"CAR-OPS","article_no":"3","title":"Occurrence reporting","text":"The operator shall notify the Authority of any occurrence within 72 hours of the event becoming known.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-OPS|4","regulation":"CAR-OPS","article_no":"4","title":"Retention of records","text":"The operator shall retain all aircraft maintenance records for a period of 2 years after the aircraft has been permanently withdrawn from service.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-OPS|5","regulation":"CAR-OPS","article_no":"5","title":"Safety management system","text":"The operator shall establish, implement and maintain a safety management system appropriate to the size and complexity of its operations. The system shall include a safety policy, hazard identification, risk assessment, safety assurance and safety promotion.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-OPS|6","regulation":"CAR-OPS","article_no":"6","title":"Operations manual","text":"The operator shall maintain an operations manual in accordance with CAR-OPS Article 14 and ICAO Annex 6, Part I, 10th Edition.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-AIR|2","regulation":"CAR-AIR","article_no":"2","title":"Definitions","text":"\"Occurrence\" means any safety-related event which endangers or could endanger an aircraft, its occupants or any other person.\n\"Dry lease\" means an arrangement in which an aircraft is leased without crew and operated under the lessee's certificate.","lang":"en","source_file":"mock","page":null,"is_definitions":true},
+ {"id":"CAR-AIR|3","regulation":"CAR-AIR","article_no":"3","title":"Reporting","text":"The organisation shall report to the Authority any occurrence affecting airworthiness within 24 hours.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-AIR|4","regulation":"CAR-AIR","article_no":"4","title":"Maintenance records","text":"Maintenance records shall be kept for a minimum of 3 years after the aircraft has been permanently withdrawn from service.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-AIR|5","regulation":"CAR-AIR","article_no":"5","title":"Safety management","text":"The organisation shall establish, implement and maintain a safety management system appropriate to the size and complexity of the organisation. The system shall include a safety policy, hazard identification, risk assessment, safety assurance and safety promotion.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-AIR|6","regulation":"CAR-AIR","article_no":"6","title":"Standards","text":"Continuing airworthiness shall be managed in accordance with ICAO Annex 6, Part I, 12th Edition and CAR-OPS Article 9.","lang":"en","source_file":"mock","page":null,"is_definitions":false},
+ {"id":"CAR-AOC|2","regulation":"CAR-AOC","article_no":"2","title":"سجلات الصيانة","text":"يلتزم المشغل بالاحتفاظ بسجلات الصيانة لمدة (5) سنوات على الأقل.","lang":"ar","source_file":"mock","page":null,"is_definitions":false}
+]
+
+EXPECTED FINDINGS on the mock (all modules together):
+  conflicting_values       CAR-OPS|4 + CAR-AIR|4 + CAR-AOC|2   (maintenance records 2 / 3 / 5 years)
+  conflicting_values       CAR-OPS|3 + CAR-AIR|3               (occurrence reporting 72 h vs 24 h)
+  broken_reference         CAR-OPS|6 -> CAR-OPS Article 14 (does not exist)
+  broken_reference         CAR-AIR|6 -> CAR-OPS Article 9  (does not exist)
+  icao_edition_issue       CAR-OPS|6 + CAR-AIR|6               (Annex 6: 10th vs 12th edition)
+  duplicate_requirement    CAR-OPS|5 + CAR-AIR|5               (SMS)
+  partial_overlap          CAR-OPS|4 + CAR-AIR|4               (acceptable if scored as duplicate)
+  divergent_definition     "Operator"  CAR-OPS|2 vs CAR-DEF|2
+  duplicate_definition     "Occurrence" CAR-AIR|2 vs CAR-DEF|2
+  definition_missing_from_def "Dry lease" CAR-OPS|2 + CAR-AIR|2
+
+FIXTURE data/mock_findings.json (fictional, for UI/AI testing only):
+[
+ {"id":"conflicting_values:CAR-AIR|4+CAR-AOC|2+CAR-OPS|4","type":"conflicting_values","severity":"high","article_ids":["CAR-OPS|4","CAR-AIR|4","CAR-AOC|2"],"evidence":[{"article_id":"CAR-OPS|4","quote":"The operator shall retain all aircraft maintenance records for a period of 2 years after the aircraft has been permanently withdrawn from service."},{"article_id":"CAR-AIR|4","quote":"Maintenance records shall be kept for a minimum of 3 years after the aircraft has been permanently withdrawn from service."},{"article_id":"CAR-AOC|2","quote":"يلتزم المشغل بالاحتفاظ بسجلات الصيانة لمدة (5) سنوات على الأقل."}],"summary":"Maintenance record retention: CAR-OPS Art.4 = 2 years; CAR-AIR Art.4 = 3 years; CAR-AOC Art.2 = 5 years","recommendation":"move_to_common","rationale":"Same obligation stated with three different periods in three regulations; the expert must choose one value and state it once.","detector":"rules","confidence":0.9,"quotes_verified":true,"extra":{"topic":"retention","object":"maintenance"}},
+ {"id":"divergent_definition:CAR-DEF|2+CAR-OPS|2","type":"divergent_definition","severity":"high","article_ids":["CAR-OPS|2","CAR-DEF|2"],"evidence":[{"article_id":"CAR-OPS|2","quote":"\"Operator\" means any person or company that operates an aircraft for commercial air transport."},{"article_id":"CAR-DEF|2","quote":"\"Operator\" means a person, organisation or enterprise engaged in or offering to engage in an aircraft operation."}],"summary":"\"Operator\" is defined differently in CAR-OPS Art.2 and CAR-DEF Art.2","recommendation":"harmonize_wording","rationale":"CAR-DEF is the reference for definitions; align the CAR-OPS definition or justify a sector-specific meaning.","detector":"similarity","confidence":0.42,"quotes_verified":true,"extra":{"term":"Operator","similarity":0.42}},
+ {"id":"broken_reference:CAR-OPS|6","type":"broken_reference","severity":"high","article_ids":["CAR-OPS|6"],"evidence":[{"article_id":"CAR-OPS|6","quote":"The operator shall maintain an operations manual in accordance with CAR-OPS Article 14 and ICAO Annex 6, Part I, 10th Edition."}],"summary":"CAR-OPS Art.6 refers to CAR-OPS Article 14, which does not exist","recommendation":"correct_reference","rationale":"The referenced article is not in the regulation; it may have been repealed, moved or renumbered.","detector":"rules","confidence":0.95,"quotes_verified":true,"extra":{"to_regulation":"CAR-OPS","to_article":"14"}}
+]
+=== END CONTRACT ===`;
+
+const BRIEFS = [
+{id:'p1', name:'P1 · Ingestion, pipeline, evaluation', files:'ingest.py, run_pipeline.py, evaluate.py, requirements.txt', text:String.raw`YOUR ROLE: P1. You own ingest.py, run_pipeline.py, evaluate.py and requirements.txt. Do not create or edit any other module. If you need another module for testing, create a throwaway stub named _stub_<name>.py and never commit it.
+
+PRIORITY: the real regulations must be in data/articles.json by T+20 minutes. Others are building against the mock until then.
+
+1) ingest.py
+parse_documents(paths) -> list[Article]
+- Accept .pdf (pypdf, page by page), .docx (python-docx: paragraphs, then table cell text row by row), .txt and .md (utf-8, then fall back to cp1256).
+- Regulation name = file stem in uppercase (CAR-OPS.pdf -> CAR-OPS), unless data/regulations.csv exists with columns file,regulation, which overrides it.
+- Apply unicodedata.normalize("NFKC") to all text (this fixes Arabic presentation forms from PDFs). Keep wording otherwise unchanged.
+- Article header detection, line by line; the first pattern that matches wins:
+  H1: ^\s*(?:Article|ARTICLE|Art\.|Section|المادة|مادة|البند)\s*[\(\[]?\s*([0-9٠-٩]+(?:[.\-][0-9٠-٩]+)*[A-Za-z]?)\s*[\)\]]?\s*(?:[-–—:.]\s*)?(.*)$
+  H2: ^\s*(?:المادة|مادة)\s+(\S+(?:\s+عشرة?)?)\s*(?:[-–—:.]\s*)?(.*)$      (ordinal words such as الأولى; keep the word as article_no)
+  H3: ^\s*((?:[A-Z]{1,4}\.)*\d+(?:\.[A-Z0-9]+)+)\s+(\S.{0,150})$          (e.g. "M.A.302 Maintenance programme", "1.035 Quality system")
+  Group 1 = article_no (convert ٠-٩ to 0-9); group 2 = title. Body = every line until the next header.
+- Allow the header patterns to be overridden by config/env REGLENS_HEADER_RE (a single regex: group 1 = number, group 2 = title).
+- Drop articles with empty body text (table-of-contents lines). If an id repeats, append "-2", "-3".
+- If a file has no headers at all, split it on blank lines into article_no "¶1", "¶2", and so on.
+- page = PDF page number where the header appeared (null for docx/txt).
+- lang = "ar" if more than 30% of letters are Arabic, else "en".
+- is_definitions = true if the normalized title or first 200 characters match (definition|interpretation|تعريف|تعاريف|التعاريف|معاني), or the regulation name contains "DEF".
+- Warn (print) when a PDF page yields text whose Arabic looks reversed or garbled (very few dictionary-like words); the fallback is that a human pastes the text into a .txt file.
+- CLI: python ingest.py data/raw/*  -> writes data/articles.json, then prints the article count per regulation, 3 sample articles, and any regulation with fewer than 3 articles (likely a header-pattern problem).
+
+2) run_pipeline.py
+- Args: --mock (use data/mock_articles.json; create it from the contract if missing), --articles PATH (default data/articles.json).
+- Steps, each one in try/except so a broken module only prints a warning:
+  findings = detect_rules.detect(arts) + detect_similarity.detect(arts)
+  findings = ai_assist.verify_quotes(findings, arts)   (if ai_assist is missing: set quotes_verified = quote in text yourself)
+  Deduplicate by id (keep the higher severity); sort by severity, then type.
+  Write data/findings.json, data/references.json (detect_rules.references), data/similarity.json (detect_similarity.similar_pairs), data/terms.json (detect_similarity.term_index).
+  Print a count per type and per severity.
+  If data/expert_labels.csv exists, run evaluate and write data/evaluation.json.
+
+3) evaluate.py
+evaluate(findings, labels_path) -> dict
+- labels CSV columns: article_a, article_b, type. article_b may be empty. Article cells use the "CAR-OPS|4" id format; also accept "CAR-OPS 4", "CAR-OPS Art. 4" and "CAR-OPS §4" (normalize them to ids).
+- A label counts as FOUND if a finding contains every labeled article id AND (when type is given) the type family matches:
+  conflict -> conflicting_values; duplicate/overlap -> duplicate_requirement or partial_overlap; definition -> any *definition* type; reference -> broken_reference or unverifiable_reference; icao -> icao_edition_issue; an exact TYPES value also works.
+- Return {"labels": n, "found": k, "recall": k/n, "per_type": {...}, "missed": [labels], "expert_acceptance_rate": (accepted+modified)/reviewed from data/reviews.json, or null}.
+- CLI: python evaluate.py -> prints the result and writes data/evaluation.json.
+
+4) requirements.txt: pypdf, python-docx, scikit-learn, pandas, openpyxl, streamlit, anthropic, openai
+
+ACCEPTANCE:
+- python run_pipeline.py --mock runs without error even if every other module is missing, and writes data/findings.json.
+- python ingest.py on one real regulation gives sensible ids (spot-check 5 against the PDF) and correct article numbers.
+- An evaluate.py run on a 3-row test CSV built from the contract's EXPECTED FINDINGS reports recall correctly.`},
+{id:'p2', name:'P2 · Rule detectors', files:'detect_rules.py', text:String.raw`YOUR ROLE: P2. You own detect_rules.py only. Use only the Python standard library (re, unicodedata, collections, json).
+
+Implement detect(articles, config=None) -> list[Finding] and references(articles) -> list[Reference].
+Use the contract's normalization (norm) for matching. Evidence quotes are always the ORIGINAL sentence.
+Work sentence by sentence: split the original text with the contract regex, then run every regex on norm(sentence).
+
+A) conflicting_values
+1. Extract value facts with this regex (on normalized text):
+   \(?\s*(\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|thirty|sixty|ninety)\s*\)?\s*-?\s*(working days?|calendar days?|business days?|hours?|days?|weeks?|months?|years?|ساعه|ساعات|ايام عمل|يوم عمل|يوما|يوم|ايام|اسبوعا|اسبوع|اسابيع|شهرا|شهر|اشهر|شهور|سنه|سنوات|عاما|عام|اعوام)(?![\w])
+   Convert to hours: hour 1, day 24, week 168, month 730, year 8760. Keep a display string in English ("2 years", "72 hours", "60 days (working)").
+2. Topic of the sentence (first match in THIS order; no match -> ignore the fact):
+   retention: retain|retention|kept|keep|preserv|archiv|احتفاظ|يحتفظ|حفظ
+   renewal: renew|revalidat|تجديد|يجدد|تجدد
+   reporting: report|notif|inform|submit|ابلاغ|يبلغ|اخطار|يخطر|تقرير
+   validity: valid|expir|صلاحيه|ساري|صالح|انتهاء
+   training_interval: recurrent|refresher|training|تدريب
+3. Object of the sentence (first match; none -> "general"):
+   dangerous_goods: dangerous goods|بضائع خطره|مواد خطره
+   occurrence: occurrence|incident|accident|حادث|حوادث|واقعه
+   maintenance: maintenance|صيانه
+   medical: medical|طبي
+   fuel: fuel|وقود
+   certificate: licen|certificat|approval|رخص|ترخيص|شهاده|اعتماد
+   training: training|تدريب
+   security: security|امن
+   flight: flight|journey|رحله
+4. Group facts by (topic, object). Within a group, each article has a SET of hour values. Two different articles conflict if their sets are DISJOINT (this avoids false alarms when one article lists both "72 hours" and "30 days").
+5. Emit ONE finding per group, covering every article that is in at least one disjoint pair:
+   severity high (medium if object == "general"); recommendation move_to_common if 3 or more regulations are involved, else harmonize_wording;
+   summary: "<Object> <topic>: CAR-OPS Art.4 = 2 years; CAR-AIR Art.4 = 3 years; ..."
+   rationale: "Same obligation with different values; the expert chooses one value and states it in one place, referenced from the others."
+   evidence: the matching sentence from each article; extra: {"topic", "object", "values": {article_id: [display, ...]}}; confidence 0.9 (0.6 for general).
+
+B) References -> broken_reference / unverifiable_reference, and references(articles)
+1. External (on the ORIGINAL sentence, case-sensitive):
+   \bCAR[\s\-–]+([A-Z0-9]{1,10})\b(?:[\s,]*(?:Article|Art\.?|Section|§|المادة|مادة)?\s*\(?\s*((?:[A-Z]{1,4}\.)*\d+(?:\.[A-Z0-9]+)*))?
+2. Internal (on normalized): (?:article|art\.?|ماده)\s*\(?\s*(\d+(?:\.\d+)*)\s*\)?\s*(?:of this (?:regulation|part)|من هذا النظام|من هذه اللائحه|من هذا الجزء) -> target is the article's own regulation.
+3. Regulation code = upper(name), strip a leading "CAR", remove non-alphanumerics (CAR-OPS -> OPS). A loaded regulation matches if its code equals the code, or starts with it.
+   Article match: compare article_no after removing spaces and any leading 2-6 letter prefix, with Arabic digits converted.
+4. Regulation loaded + article given + no matching article -> broken_reference, high, correct_reference,
+   summary "CAR-OPS Art.6 refers to CAR-OPS Article 14, which does not exist", rationale "Target may have been repealed, moved or renumbered."
+   Regulation not loaded -> unverifiable_reference, low, keep_with_justification, rationale "Target regulation is not in the analysed sample; verify manually."
+   One finding per (source article, target). id = "<type>:<source id>" (add "+<target>" if one article has several).
+5. references() returns every detected reference as a Reference dict (resolved_id is set when it resolves). The app uses it for impact analysis.
+
+C) icao_edition_issue
+1. Documents (normalized): (?:icao\s+)?(annex|ملحق|الملحق)\s*\(?\s*(\d+)  and  \bdoc\s*(\d{4})
+2. Edition in the next 100 characters (stop at the next "annex"/"doc" mention):
+   (\d+)\s*(?:st|nd|rd|th)?\s*edition | edition\s*(?:no\.?\s*)?(\d+) | (?:الطبعه|الاصدار)\s*(?:رقم\s*)?\(?\s*(\d+|\S+(?:\s+عشره?)?)
+   Arabic ordinals: الاولي 1, الثانيه 2, الثالثه 3, الرابعه 4, الخامسه 5, السادسه 6, السابعه 7, الثامنه 8, التاسعه 9, العاشره 10, الحاديه 1; add 10 when followed by عشر/عشره.
+3. Group by document key ("Annex 6", "Doc 9859"). Two or more distinct editions across the sample -> icao_edition_issue, high, harmonize_wording,
+   summary "ICAO Annex 6 cited as 10th edition (CAR-OPS Art.6) and 12th edition (CAR-AIR Art.6)".
+   If config["icao_current"] (e.g. {"Annex 6": 12}) is given and a citation is older -> icao_edition_issue, high, correct_reference, summary "... cites an outdated edition".
+
+D) CLI and tests
+python detect_rules.py data/mock_articles.json -> prints findings as JSON and a count per type.
+Add a simple assert-based self-test (run with --test) that checks, on the mock:
+2 conflicting_values (maintenance 3 regulations; occurrence reporting 72 h vs 24 h), 2 broken_reference (CAR-OPS|6 -> 14, CAR-AIR|6 -> 9), 1 icao_edition_issue (Annex 6).
+Also test the Arabic fact: CAR-AOC|2 must extract "5 years" with topic retention and object maintenance.
+
+After the merge (T+25): run on data/articles.json, read 10 findings by hand, and tighten the keywords if you see false alarms. Report precision to the lead.`},
+{id:'p3', name:'P3 · Definitions and similarity', files:'detect_similarity.py', text:String.raw`YOUR ROLE: P3. You own detect_similarity.py only. Use scikit-learn (TfidfVectorizer, cosine_similarity) plus the standard library.
+
+Implement:
+  detect(articles, config=None) -> list[Finding]
+  similar_pairs(articles, min_score=0.25) -> list[(id_a, id_b, score)]   (used by the app's impact view)
+  term_index(articles) -> {term_key: [{"article_id","term","text"}]}     (used by the app's terms view)
+Use the contract's normalization for matching. Evidence quotes are always exact substrings of Article.text.
+
+A) Definitions
+1. Extract (term, definition_line) per line:
+   EN quoted, anywhere: ["“'«]([^"”'»\n]{2,60})["”'»]\s*(?:means|shall mean|refers to|is defined as)\s+(.+)
+   EN unquoted, only in is_definitions articles: ^\s*(?:\(?[a-z0-9]{1,3}\)\s*)?([A-Z][A-Za-z\- ]{2,50}?)\s+means\s+(.+)$
+   AR, only in is_definitions articles: ^\s*(?:[-–•]|\(?[0-9٠-٩a-zأ-ي]{1,3}[\).])?\s*([^:\n]{2,40}?)\s*:\s+(.{10,})$
+   The evidence quote = the whole original line (stripped).
+2. term_key = norm(term), strip quotes and punctuation, remove a leading "ال" from each Arabic word (only if 3+ letters remain), drop a final English plural "s" on words of 5+ letters.
+3. DEF regulation = config["def_regulation"] if given, else the regulation whose name contains "DEF".
+4. Definition similarity = cosine of TF-IDF char_wb (3,5) over the normalized definition texts (fit on all definitions).
+5. For each definition in a NON-DEF regulation:
+   - term in DEF and similarity >= 0.80 -> duplicate_definition, medium, cross_reference.
+     summary: "\"Occurrence\" in CAR-AIR Art.2 repeats CAR-DEF Art.2"; rationale: "Delete the local definition and refer to CAR-DEF."
+   - term in DEF and similarity < 0.80 -> divergent_definition, high, harmonize_wording.
+     summary: "\"Operator\" is defined differently in CAR-OPS Art.2 and CAR-DEF Art.2"; rationale: "Align with CAR-DEF, or keep with a documented sector-specific justification."
+   - term NOT in DEF but defined in 2 or more non-DEF regulations -> definition_missing_from_def, medium, move_to_common, one finding per term covering all those articles.
+     rationale: "Add one definition to CAR-DEF and reference it from each regulation."
+   extra: {"term": original term, "similarity": score}; confidence = similarity (or 0.7 for missing).
+6. term_index(): every extracted definition grouped by term_key (include DEF).
+
+B) Duplicate and overlapping requirements
+1. Candidates: articles with is_definitions == false and at least 15 words.
+2. TfidfVectorizer(analyzer="char_wb", ngram_range=(3,5), sublinear_tf=True, min_df=1) on norm(text). This works for Arabic and English without stemming.
+3. Cosine for every pair from DIFFERENT regulations. Thresholds come from config with defaults dup=0.85, overlap=0.55.
+   score >= dup -> duplicate_requirement, medium, recommendation cross_reference
+     (move_to_common if the same article cluster spans 3 or more regulations: build clusters by linking pairs >= dup).
+     rationale: "Same requirement in two regulations; keep it in one (expert chooses the lead) and replace the copy with a reference."
+   overlap <= score < dup -> partial_overlap, medium.
+     containment = |words(shorter) ∩ words(longer)| / |words(shorter)|; if containment >= 0.8 -> cross_reference ("one article is contained in the other"), else harmonize_wording.
+   evidence: for each of the two articles, the ONE sentence most similar to the other article (sentence-level TF-IDF fit on both articles' sentences).
+   confidence = score; extra: {"score": score, "containment": c}.
+   summary: "CAR-OPS Art.5 and CAR-AIR Art.5 are near-identical (score 0.93)".
+4. similar_pairs(): all cross-regulation pairs with score >= min_score, sorted by score descending, capped at 2000.
+
+C) CLI and tests
+python detect_similarity.py data/mock_articles.json -> prints findings and the TOP 20 pairs with scores (so thresholds can be tuned on real data).
+Self-test with --test on the mock: duplicate_requirement CAR-OPS|5 + CAR-AIR|5; CAR-OPS|4 + CAR-AIR|4 as partial_overlap or duplicate; divergent_definition "Operator"; duplicate_definition "Occurrence"; definition_missing_from_def "Dry lease" (CAR-OPS|2 + CAR-AIR|2).
+The mock is tiny, so TF-IDF scores may differ from real data: print the scores, and if needed set thresholds so the mock passes, then retune on real data after the merge.
+
+Performance: real data may have 1,000+ articles. Use the sparse matrix product (X @ X.T) and only read the upper triangle; never loop in pure Python over all pairs.`},
+{id:'p4', name:'P4 · Review app (Streamlit)', files:'app.py', text:String.raw`YOUR ROLE: P4. You own app.py only. It is the demo, so it must never crash. Build against data/mock_articles.json and data/mock_findings.json (create them from the contract if missing); switch to the real files automatically when they exist.
+
+Layout (st.set_page_config(layout="wide", page_title="RegLens")):
+Title "RegLens · Regulation consistency review" with the subtitle "Supports the expert's decision. Official text is never modified."
+
+Sidebar
+- Data status: which files exist (articles, findings, references, similarity, terms, evaluation) and their counts.
+- Upload regulations (pdf/docx/txt, multiple) -> save into data/raw/ -> subprocess run "python ingest.py data/raw/*" then "python run_pipeline.py"; show stdout in an expander.
+- "Re-run analysis" button (runs run_pipeline.py). "Use demo data" toggle (runs run_pipeline.py --mock).
+- Filters: type (multi), severity (multi), regulation (multi), review status (multi), text search over summary and quotes.
+
+Metrics row: regulations · articles · findings (high / medium / low) · reviewed %.
+
+Tabs:
+1) Findings
+ - st.dataframe with columns: ID (short), Severity, Type (human label), Articles (e.g. "CAR-OPS · Art. 4, CAR-AIR · Art. 4"), Summary, Recommendation (human label), Review status. Sort severity high -> low. Enable row selection (selection_mode="single-row", on_select="rerun"); fall back to a selectbox if your Streamlit version lacks it.
+ - Detail of the selected finding:
+   * Header: summary, a type badge, a severity badge, and confidence.
+   * Badge "✓ Quotes verified in source text" if quotes_verified, else "⚠ Quote not found in source; check manually".
+   * Side-by-side columns, one per article (max 3; more go in an expander): "CAR-OPS · Art. 4: title", page if known, full text in a read-only box with the evidence quote wrapped in <mark>. Use st.markdown(unsafe_allow_html=True) with HTML-escaped text; dir="rtl" and text-align:right when lang == "ar".
+   * "Recommended action: <label>" plus the rationale.
+   * Expert review form: decision radio (Accept / Modify / Reject), final recommendation select (default = the finding's recommendation), note, reviewer name, Save -> data/reviews.json[finding_id] = Review with an ISO timestamp. Show the saved decision when the finding is reopened.
+   * "Draft unified wording with AI" button -> ai_assist.draft(finding, articles). Show proposed_text_en / proposed_text_ar (RTL), placement, the per-article changes table, and the open questions, under a warning box: "AI draft — not approved. Requires expert review." Save it into reviews[finding_id]["ai_draft"]. If the result mode is "manual" or "error", show the prompt in st.code so it can be copied into any chat assistant.
+2) Impact
+ - Select an article (searchable selectbox with "CAR-OPS · Art. 4: title").
+ - Show "Changing this article affects N places", then three lists: findings involving it; incoming references (references.json where resolved_id == it); similar articles (similarity.json, score >= 0.4) with scores. Each entry names the regulation and article number.
+3) Terms
+ - From terms.json: table of term, defined in (list of "CAR-X · Art. n"), count, in CAR-DEF yes/no. Highlight rows with count > 1 or not in CAR-DEF.
+4) Draft check (bonus: alert when a new draft repeats an existing requirement)
+ - Text area "Paste a new draft article" + regulation name input -> build the article {"id":"DRAFT|1","regulation":"DRAFT","article_no":"1","title":"Draft","text":..., "lang": detect, "is_definitions": contains "means"/":" definitions}. Run detect_rules.detect and detect_similarity.detect on articles + [draft]; show only findings that include DRAFT|1, as st.warning alerts: "This draft repeats CAR-OPS Art.5 (score 0.91) — consider a cross-reference."
+5) Evaluation
+ - From evaluation.json: recall as a big number ("Found 8 of 10 expert-labeled cases"), a per-type table, the missed list, and the expert acceptance rate. If missing: "Run evaluate.py after adding data/expert_labels.csv".
+
+Export (above the tabs or in the sidebar):
+ - Download Excel (pandas + openpyxl, BytesIO): sheet "Findings" (id, severity, type, articles, summary, quote per article, recommendation, rationale, quotes_verified, decision, final_recommendation, note, reviewer, timestamp, ai_draft_en, ai_draft_ar); sheet "Terms"; sheet "Evaluation" if available.
+ - Download CSV with encoding "utf-8-sig" (so Excel shows Arabic correctly).
+
+Human labels (keep in one dict):
+ types: conflicting_values "Conflicting values", duplicate_requirement "Duplicate requirement", partial_overlap "Partial overlap", duplicate_definition "Duplicate definition", divergent_definition "Divergent definition", definition_missing_from_def "Definition missing from CAR-DEF", broken_reference "Broken reference", unverifiable_reference "Unverifiable reference", icao_edition_issue "ICAO edition issue"
+ recommendations: move_to_common "Move to common regulation", cross_reference "Cross-reference", harmonize_wording "Harmonize wording", keep_with_justification "Keep with justification", correct_reference "Correct reference"
+
+Robustness:
+ - Import ai_assist, detect_rules and detect_similarity inside try/except; if missing, disable the related button with a caption "module not available yet".
+ - Any missing JSON -> an empty list or dict plus an st.info message. Wrap each tab body in try/except and show st.error(str(e)) instead of crashing.
+ - Cache loads with st.cache_data keyed on file modification time.
+ - Keep the styling plain: no custom theme beyond the <mark> highlight and RTL.
+
+ACCEPTANCE: "streamlit run app.py" with ONLY app.py and the mock files present shows the 3 mock findings, the side-by-side view with highlights (the Arabic article right-to-left), saves a review, and downloads an Excel file.`},
+{id:'p5', name:'P5 · AI assist and prompt library', files:'ai_assist.py, prompts/', text:String.raw`YOUR ROLE: P5. You own ai_assist.py and the prompts/ folder only. Your prompts are a graded deliverable ("prompt quality, clarity, reusability: can a GCAA employee use them tomorrow?"), so they must be clean, documented and usable without our code.
+
+1) verify_quotes(findings, articles) -> findings
+ For each evidence item: ok = quote.strip() in article.text, or the same after collapsing whitespace in both. An unknown article_id -> not ok.
+ Set finding["quotes_verified"] = all(ok). Add finding["extra"]["unverified_quotes"] = [...] when something fails. Never drop findings.
+
+2) prompts/ (Markdown templates with {placeholders})
+ unified_wording.md     Draft ONE unified provision for a finding. Inputs: {finding_type} {summary} {recommendation} {articles_block} (each article as [CAR-OPS · Art. 4] title + full text) {evidence_block}.
+ classify_pair.md       Given two articles, classify the relationship (DUPLICATE / PARTIAL_OVERLAP / CONFLICT / DEFINITION_DUPLICATE / NONE) and recommend one action. Used as an optional second opinion.
+ ar_en_consistency.md   Compare the Arabic and English versions of one article: list mismatches in numbers, periods, obligation strength (shall/may ↔ يجب/يجوز), missing or extra clauses, references.
+ keep_justification.md  Draft the justification text when the expert decides to keep a requirement where it is.
+ impact_summary.md      Given an article and its linked findings/references, summarize what else must change if it is amended.
+ Every template MUST contain these rules:
+  - You assist a GCAA regulatory expert. You do not decide; the expert decides.
+  - Use ONLY the text provided. Do not invent requirements, values, article numbers or ICAO editions.
+  - Quote source text verbatim and tag each quote with its article id, e.g. [CAR-OPS · Art. 4].
+  - If the sources give different values, do NOT pick one: list the options and ask the expert to choose.
+  - If information is missing, say so in open_questions_for_expert.
+  - Output STRICT JSON matching the schema in the template, with no prose outside the JSON.
+ unified_wording output schema:
+  {"proposed_text_en": "...", "proposed_text_ar": "...", "placement": "where the unified provision should live (regulation + article), with reason",
+   "changes": [{"article_id": "CAR-OPS|4", "action": "replace with reference | delete | keep | amend", "new_text": "..."}],
+   "open_questions_for_expert": ["..."], "source_quotes": [{"article_id": "CAR-OPS|4", "quote": "..."}]}
+ prompts/README.md: one section per prompt covering when to use it, how to use it manually in any chat assistant (paste the template, paste the articles where marked, read the JSON), and an example. This file is what we show the judges as the "reusable prompt set".
+
+3) build_prompt(finding, articles, kind="unified_wording") -> str
+ Load prompts/<kind>.md and fill the placeholders from the finding and the referenced articles (full text, with their display ids).
+
+4) draft(finding, articles, kind="unified_wording") -> dict   (MUST NEVER RAISE)
+ - If env ANTHROPIC_API_KEY is set: anthropic client, model = env REGLENS_MODEL or "claude-sonnet-5-5", max_tokens 1500, temperature 0.
+ - elif env OPENAI_API_KEY is set: openai client, model = env REGLENS_MODEL or a current GPT model the team has access to.
+ - Parse JSON (strip code fences; on failure, retry once asking for JSON only).
+ - Verify every source_quotes[i].quote is a substring of its article text; put the result in result["quotes_check"] = {"all_verified": bool, "failed": [...]}.
+ - Return {"mode": "api", "model": ..., **parsed, "quotes_check": ...}.
+ - No key: return {"mode": "manual", "prompt": build_prompt(...)}. On any exception: {"mode": "error", "error": str(e), "prompt": build_prompt(...)}.
+ - Add a 30-second timeout.
+
+5) CLI
+ python ai_assist.py data/mock_findings.json -> prints the unified_wording prompt for the first finding and, if a key is set, the draft JSON.
+ python ai_assist.py --verify data/mock_findings.json data/mock_articles.json -> prints the verification result per finding.
+
+6) Examples (backup for the demo; do this even if the API works)
+ Run unified_wording and ar_en_consistency manually in a chat assistant on 2 mock findings. Save the inputs and outputs to prompts/examples/*.md.
+ After the merge, do the same for 2 REAL findings. These are our "at least one output" deliverable if the live API fails on stage.
+
+ACCEPTANCE: verify_quotes marks a deliberately edited quote as unverified; build_prompt produces a complete prompt for each of the 3 mock findings; draft() returns mode "manual" with no key set and never raises.`}
+];
+
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.getElementById('pre-contract').textContent=CONTRACT;
+document.getElementById('cards').innerHTML=BRIEFS.map(b=>`<div class="card" id="${b.id}"><div class="head"><div><h3>${esc(b.name)}</h3><div class="sub">Owns: ${esc(b.files)}</div></div><div class="btns"><button type="button" data-copy="${b.id}">Copy agent prompt</button><button type="button" class="ghost" data-copy="${b.id}-only">Copy brief only</button></div></div><pre></pre></div>`).join('');
+BRIEFS.forEach(b=>{document.querySelector('#'+b.id+' pre').textContent=b.text;});
+const full=b=>'You are a coding agent on a 5-person hackathon team with about 45 minutes. Build exactly what YOUR ROLE says, against the shared contract. Work fast, keep it simple, and test as you go. Do not touch files you do not own.\n\n'+CONTRACT+'\n\n'+b.text;
+const textFor=k=>{if(k==='contract')return CONTRACT;const only=k.endsWith('-only');const b=BRIEFS.find(x=>x.id===k.replace('-only',''));return only?b.text:full(b);};
+document.addEventListener('click',async e=>{const btn=e.target.closest('button[data-copy]');if(!btn)return;const t=textFor(btn.dataset.copy);const old=btn.textContent;
+ try{await navigator.clipboard.writeText(t);btn.textContent='Copied';}
+ catch(_){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy');}catch(__){}ta.remove();btn.textContent=ok?'Copied':'Select the text and copy';}
+ setTimeout(()=>btn.textContent=old,1600);});
+}
+</script>
+</body>
+</html>

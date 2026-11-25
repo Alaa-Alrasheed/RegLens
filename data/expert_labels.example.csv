@@ -1,0 +1,7 @@
+article_a,article_b,type
+CAR-OPS|4,CAR-AIR|4,conflict
+CAR-OPS|3,CAR-AIR|3,conflict
+CAR-OPS|5,CAR-AIR|5,duplicate
+CAR-OPS|2,CAR-DEF|2,definition
+CAR-AIR|6,,reference
+CAR-OPS|6,CAR-AIR|6,icao
